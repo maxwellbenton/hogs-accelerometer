@@ -1,24 +1,28 @@
-import React, { Component, PropTypes } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import React, { Component } from "react";
+
+import Game from './Game'
 
 class App extends Component {
   state = {
-    alpha: null,
-    beta: null,
-    gamma: null,
-    pointA: null,
-    pointB: null,
-    pointG: null,
-    compass: null,
-    latitude: null,
-    longitude: null,
+    screenSize: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    },
+    rotation: {
+      alpha: 0,
+      beta: 0,
+      gamma: 0
+    },
+    north: {
+      alpha: 0,
+      beta: 0,
+      gamma: 0
+    },
+    score: 0,
+    timer: 60,
+    point: {a: 0, b: 0, g: 0},
     loading: null,
-    locations: {
-      "Central Park": [40.7829, 73.9654],
-      "Bull Statue": [40.705576, -74.013421],
-      "World Trade Center": [40.7127, 74.0134]
-    }
+    gameStarted: false
   };
 
   componentDidMount() {
@@ -27,43 +31,71 @@ class App extends Component {
         "deviceorientation",
         this.deviceOrientationListener
       );
-      this.setState({
-        pointA: Math.round(Math.random() * 360),
-        pointB: Math.round(Math.random() * 360) - 180,
-        pointG: Math.round(Math.random() * 180) - 90
-      });
-      if (navigator.geolocation) {
-        this.setState({ loading: true });
-        navigator.geolocation.getCurrentPosition(position => {
-          this.setState({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            loading: false
-          });
-        });
-      } else {
-        console.log("geolocation error");
-      }
+      this.onStart()
     } else {
       alert("Sorry, your browser doesn't support Device Orientation");
     }
   }
 
+  onStart = () => {
+    this.setState({
+      gameStarted: true,
+      point: {a: Math.round(Math.random() * 360),
+              b: Math.round(Math.random() * 360) - 180,
+              g: Math.round(Math.random() * 180) - 90}})
+  }
+
+  onSuccess = () => {
+    this.setState((pState) => {
+      return {
+        score: pState + 1,
+        point: {a: Math.round(Math.random() * 180)+180,
+                b: Math.round(Math.random() * 360) - 180,
+                g: Math.round(Math.random() * 180) - 90}
+      }
+    });
+  }
+
   deviceOrientationListener = event => {
     this.setState({
+      rotation: {
       alpha: Math.round(event.alpha),
       beta: Math.round(event.beta),
-      gamma: Math.round(event.gamma),
-      compass: Math.round(event.webkitCompassHeading)
+      gamma: Math.round(event.gamma)
+      }
     });
   };
 
   render() {
-    const locations = Object.keys(this.state.locations).map(key => (
-      <li>{key}</li>
-    ));
     return (
-      <div className="App">
+      <div style={{width: '100%', height: '100%'}}>
+        <div style={{position: 'absolute'}}>
+          <span>Score: {this.state.score}</span>
+          <span>A: {this.state.rotation.alpha }</span>
+          <span>B: {this.state.rotation.beta }</span>
+          <span>G: {this.state.rotation.gamma }</span>
+
+        </div>
+        <Game {...this.state}/>
+        <button> Start </button>
+      </div>
+    );
+  }
+}
+
+export default App;
+
+// <h1>Compass: {this.state.compass}</h1>
+// {this.state.loading ? (
+//   <h1>loading...</h1>
+// ) : (
+//   <div>
+//     <h1>Lat: {this.state.latitude}</h1>
+//     <h1>{this.state.longitude}</h1>
+//     {locations}
+//   </div>
+// )}
+{/* <div className="App">
         <div style={{ width: "100%" }}>
           <span
             style={{
@@ -96,20 +128,4 @@ class App extends Component {
             G
           </span>
         </div>
-      </div>
-    );
-  }
-}
-
-export default App;
-
-// <h1>Compass: {this.state.compass}</h1>
-// {this.state.loading ? (
-//   <h1>loading...</h1>
-// ) : (
-//   <div>
-//     <h1>Lat: {this.state.latitude}</h1>
-//     <h1>{this.state.longitude}</h1>
-//     {locations}
-//   </div>
-// )}
+      </div> */}
